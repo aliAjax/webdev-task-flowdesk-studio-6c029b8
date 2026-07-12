@@ -1,0 +1,19 @@
+{
+  "task_id": "webdev-flowdesk-studio-001",
+  "title": "FlowDesk Studio：企业级低代码流程编排与审批监控平台",
+  "category_tags": {
+    "primary": "工具型应用：低代码 / 页面搭建器",
+    "arena": [
+      "ui",
+      "dashboard",
+      "visualize"
+    ],
+    "prompt_type": "前端"
+  },
+  "required_tools": [
+    "npm",
+    "Playwright",
+    "Browser"
+  ],
+  "annotator": "王力"
+}

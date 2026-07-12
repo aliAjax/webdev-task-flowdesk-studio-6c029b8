@@ -1,0 +1,352 @@
+{
+  "schema_version": "1.0",
+  "task_id": "webdev-flowdesk-studio-001",
+  "title": "FlowDesk Studio 交付验收 Rubric",
+  "total_weight": 100,
+  "pass_threshold": 80,
+  "hard_gate_rule": "任一 hard_gate 叶节点不通过时，整体结论为阻塞交付，不因总分达到阈值而放行。",
+  "rubric": [
+    {
+      "id": "R01",
+      "category": "可运行性",
+      "criterion": "项目能在干净环境中使用锁定依赖完成安装，并通过 README 声明的命令启动、访问和构建；不得依赖其他项目占用的端口、个人登录态、外部 API 或不可复现服务。",
+      "weight": 8,
+      "hard_gate": true,
+      "grader_spec": {
+        "type": "manual_review",
+        "procedure": [
+          "在干净环境执行 npm ci。",
+          "执行 npm run build。",
+          "执行 npm run dev 并访问实际输出的本地地址。",
+          "核对 package-lock.json、Node.js 版本要求和 README 启动说明。"
+        ],
+        "pass_condition": "安装、构建和启动均成功，页面可访问，且不存在未声明的外部依赖或端口复用误判。"
+      },
+      "evidence_required": [
+        "依赖安装日志",
+        "生产构建日志",
+        "本地服务启动日志与访问地址",
+        "README 和 lockfile 审查记录"
+      ]
+    },
+    {
+      "id": "R02",
+      "category": "Dashboard",
+      "criterion": "Dashboard 正确展示流程总数、已发布数、草稿数、异常或超时实例数和平均审批耗时，并展示最近编辑、发布检查及异常实例；最近流程可以进入对应编辑器。",
+      "weight": 6,
+      "hard_gate": false,
+      "grader_spec": {
+        "type": "playwright_assertion",
+        "procedure": [
+          "打开 Dashboard 并断言五项 KPI 的标签和值。",
+          "断言最近编辑、待处理发布检查和异常实例三个区域存在有效数据。",
+          "点击最近流程并断言 URL、流程名称和画布上下文一致。"
+        ],
+        "pass_condition": "所有 KPI 与 mock 数据一致，三个信息区可见，最近流程跳转后保持正确流程上下文。"
+      },
+      "evidence_required": [
+        "Dashboard DOM 断言",
+        "KPI 与 mock 数据对照记录",
+        "Dashboard 到 Editor 的 Playwright 轨迹",
+        "1440px Dashboard 截图"
+      ]
+    },
+    {
+      "id": "R03",
+      "category": "流程管理",
+      "criterion": "Workflows 完整展示流程名称、业务域、状态、版本、编辑人、更新时间和异常实例数；搜索、状态筛选、业务域筛选、排序、新建、复制、归档和进入编辑器均真实生效。",
+      "weight": 6,
+      "hard_gate": false,
+      "grader_spec": {
+        "type": "playwright_assertion",
+        "procedure": [
+          "分别执行名称搜索、状态筛选、业务域筛选和两种排序并断言结果集合。",
+          "验证无搜索结果空态。",
+          "依次执行新建、复制和归档并断言数量、状态、版本及流程上下文变化。"
+        ],
+        "pass_condition": "列表字段完整，所有筛选和操作产生正确且可观察的状态变化，不出现版本历史或上下文串线。"
+      },
+      "evidence_required": [
+        "列表字段 DOM 断言",
+        "筛选和排序前后结果断言",
+        "新建、复制、归档操作轨迹",
+        "无结果空态截图"
+      ]
+    },
+    {
+      "id": "R04",
+      "category": "流程画布",
+      "criterion": "Workflow Editor 使用成熟流程库实现 Start、Form、Approval、Condition、Automation、Notify 和 End 节点，支持选择、拖动、添加、连接、删除，并能稳定观察节点、连线、选中态和错误态。",
+      "weight": 10,
+      "hard_gate": true,
+      "grader_spec": {
+        "type": "playwright_assertion",
+        "procedure": [
+          "断言七类节点均可从节点库添加。",
+          "拖动现有节点并断言坐标变化。",
+          "连接两个节点并断言可定位连线增加。",
+          "选择并删除节点，断言相关连线同步删除。",
+          "检查节点、连线、选中态和错误态均有稳定定位属性。"
+        ],
+        "pass_condition": "七类节点及四类核心画布操作全部可用，图结构更新正确，关键元素可被浏览器和 Playwright 稳定定位。"
+      },
+      "evidence_required": [
+        "画布操作 Playwright 轨迹",
+        "操作前后节点和连线 DOM 断言",
+        "选中态与错误态截图",
+        "React Flow 或同类库依赖证据"
+      ]
+    },
+    {
+      "id": "R05",
+      "category": "节点配置",
+      "criterion": "各类节点配置真实可编辑并持久化：Form 支持文本、数字、金额、日期、下拉和附件字段；Approval 支持四种审批人来源；Condition 支持三种规则；Automation 和 Notify 的全部配置可保存，且切换节点不会串改名称或配置。",
+      "weight": 10,
+      "hard_gate": true,
+      "grader_spec": {
+        "type": "playwright_assertion",
+        "procedure": [
+          "为 Form 新增六种字段并保存后重新进入节点核对。",
+          "逐类验证 Approval、Condition、Automation 和 Notify 的配置保存。",
+          "在不同类型节点间连续切换并保存，断言节点名称和配置互不污染。",
+          "验证未保存、保存中、保存成功和字段错误状态。"
+        ],
+        "pass_condition": "所有指定配置项均可创建、修改、校验和持久化，跨节点切换无陈旧值、串改或假保存。"
+      },
+      "evidence_required": [
+        "各节点配置前后 DOM 断言",
+        "保存后重新选择节点的值断言",
+        "跨节点切换回归轨迹",
+        "配置错误与保存成功截图"
+      ]
+    },
+    {
+      "id": "R06",
+      "category": "流程校验",
+      "criterion": "校验能识别缺少结束节点、不可从 Start 到达的必经节点、无法到达 End 的路径、孤立节点、未配置 Condition、空审批人、无效字段和不足两个有效分支，并在画布和问题面板同步标记。",
+      "weight": 10,
+      "hard_gate": true,
+      "grader_spec": {
+        "type": "unit_test",
+        "procedure": [
+          "为每类错误构造独立图结构并断言错误代码、节点 ID 和消息。",
+          "在浏览器运行校验并断言画布节点错误样式与问题面板条目一一对应。",
+          "修复一个 Condition 错误后重新校验，断言错误数量减少且其他错误仍保留。",
+          "验证存在错误时发布操作被阻止。"
+        ],
+        "pass_condition": "所有指定图结构和配置错误均能准确识别；双层反馈一致；修复后结果更新；错误流程不能发布。"
+      },
+      "evidence_required": [
+        "校验逻辑单元测试结果",
+        "错误节点与问题面板 DOM 对照",
+        "修复前后错误数量断言",
+        "阻止错误发布的浏览器证据"
+      ]
+    },
+    {
+      "id": "R07",
+      "category": "表单预览",
+      "criterion": "Form Preview 根据当前流程动态生成所有字段，正确处理长文本、必填、数字和金额格式、日期、空选项、附件占位与附件必填，并依据实际 Condition 配置实时改变模拟分支。",
+      "weight": 7,
+      "hard_gate": false,
+      "grader_spec": {
+        "type": "playwright_assertion",
+        "procedure": [
+          "断言预览字段集合与当前 Form 节点配置一致。",
+          "覆盖空提交、超长文本、负数、金额精度、空下拉、日期和附件必填场景。",
+          "输入阈值上下边界金额并断言 Condition 分支结果。",
+          "执行重置并断言字段值、错误和分支均恢复初始状态。"
+        ],
+        "pass_condition": "动态字段、验证、格式和重置均正确；分支结果严格由当前 Condition 规则及表单值决定。"
+      },
+      "evidence_required": [
+        "动态字段 DOM 断言",
+        "边界输入 Playwright 轨迹",
+        "字段错误状态截图",
+        "分支变化与重置断言"
+      ]
+    },
+    {
+      "id": "R08",
+      "category": "发布与全局联动",
+      "criterion": "必须在同一浏览器会话完成 Dashboard 进入编辑器、修改审批配置、两次校验、修复 Condition、预览分支、返回发布的连续链路；发布后 Dashboard 和 Workflows 的状态、版本号及发布时间同步更新。",
+      "weight": 9,
+      "hard_gate": true,
+      "grader_spec": {
+        "type": "playwright_assertion",
+        "procedure": [
+          "使用单个 Playwright test 和同一 page 完成需求中的步骤 1 至 9。",
+          "每一步断言当前流程 ID、节点配置、错误数量、分支结果和发布状态。",
+          "发布后分别访问 Dashboard 和 Workflows，断言状态、版本号和发布时间的具体值。",
+          "检查 toast、遮罩或固定层不会阻挡后续操作。"
+        ],
+        "pass_condition": "完整链路无需刷新或新建上下文即可完成，且三个页面的数据完全一致、关键按钮不被遮挡。"
+      },
+      "evidence_required": [
+        "单测试完整链路轨迹",
+        "各步骤明确断言日志",
+        "发布前后 Dashboard 和 Workflows DOM 对照",
+        "发布成功后的 1440px 截图"
+      ]
+    },
+    {
+      "id": "R09",
+      "category": "运行监控",
+      "criterion": "Runtime Monitor 展示 80 条实例及完整字段，状态筛选和可见搜索控件真实生效；详情中的申请人、状态、风险、耗时、时间线与列表一致，只有进行中或异常实例才显示当前停留并高亮正确节点。",
+      "weight": 7,
+      "hard_gate": false,
+      "grader_spec": {
+        "type": "playwright_assertion",
+        "procedure": [
+          "分别筛选异常、超时、进行中和已完成并断言结果状态。",
+          "输入存在与不存在的实例编号或申请人并断言搜索结果。",
+          "打开异常实例，核对详情字段、时间线和高亮节点。",
+          "打开已完成低风险实例，断言无当前停留且风险仍为低。"
+        ],
+        "pass_condition": "列表、筛选、搜索、详情、时间线和流程高亮语义一致，不出现状态或风险冲突。"
+      },
+      "evidence_required": [
+        "四种状态筛选断言",
+        "搜索结果与空态断言",
+        "异常和已完成实例详情截图",
+        "当前节点 ID 与高亮节点对照"
+      ]
+    },
+    {
+      "id": "R10",
+      "category": "版本比较",
+      "criterion": "Version History 能选择任意两个真实版本并计算新增节点、删除节点、节点配置字段变化、具体连线新增删除及发布说明；不得使用固定文本或仅比较连线数量。",
+      "weight": 8,
+      "hard_gate": true,
+      "grader_spec": {
+        "type": "unit_test",
+        "procedure": [
+          "使用包含节点增删、同节点配置变化和等数量重连的版本对验证 diff 算法。",
+          "交换基准版本和目标版本，断言增删方向反转。",
+          "在浏览器选择两个版本并核对页面展示与算法结果。"
+        ],
+        "pass_condition": "结构、配置、具体连线和说明均来自所选版本的真实数据，方向和数量准确。"
+      },
+      "evidence_required": [
+        "版本 diff 单元测试",
+        "版本数据与页面结果对照",
+        "等数量重连测试证据",
+        "版本对比截图"
+      ]
+    },
+    {
+      "id": "R11",
+      "category": "版本恢复",
+      "criterion": "历史版本可恢复为草稿，恢复后自动回到正确 Workflow Editor，显示成功状态，并完整恢复节点、连线和配置；版本号及历史记录语义保持一致。",
+      "weight": 5,
+      "hard_gate": false,
+      "grader_spec": {
+        "type": "playwright_assertion",
+        "procedure": [
+          "记录目标历史版本的节点、连线和配置快照。",
+          "执行恢复并断言跳转 URL、成功状态和草稿状态。",
+          "逐项比对恢复后的节点、连线和配置。",
+          "重新打开版本历史，核对当前版本标记和历史记录。"
+        ],
+        "pass_condition": "恢复后的图结构与目标版本完全一致，流程上下文、草稿状态和版本历史无冲突。"
+      },
+      "evidence_required": [
+        "恢复前版本快照",
+        "恢复操作 Playwright 轨迹",
+        "恢复后画布 DOM 断言",
+        "恢复成功及版本历史截图"
+      ]
+    },
+    {
+      "id": "R12",
+      "category": "Mock 数据",
+      "criterion": "mock-data 结构化提供至少 12 个流程、每流程至少 1 个版本、至少 3 个八节点以上流程、80 个实例、20 个异常或超时实例、8 个用户、6 个角色和 5 个业务域，并真实覆盖全部指定边界数据且跨表一致。",
+      "weight": 5,
+      "hard_gate": true,
+      "grader_spec": {
+        "type": "unit_test",
+        "procedure": [
+          "自动统计所有数量要求。",
+          "验证外键、状态、风险和异常计数的一致性。",
+          "逐项断言空流程、孤立节点、缺少 End、未配置 Condition、空审批人、字段校验失败、超长名称、超长审批说明、无异常实例和无搜索结果数据。"
+        ],
+        "pass_condition": "所有数量和边界断言通过，不存在异常计数、流程版本或实例状态冲突。"
+      },
+      "evidence_required": [
+        "Mock 数据统计测试输出",
+        "跨表一致性测试输出",
+        "十类边界数据 ID 清单",
+        "数据类型审查记录"
+      ]
+    },
+    {
+      "id": "R13",
+      "category": "视觉与多状态",
+      "criterion": "任务资产包含明确视觉参考及用途说明；最终界面在 1440px 下呈现专业企业 SaaS 信息架构和稳定三栏编辑器，并覆盖 loading、empty、error、success、hover、focus、selected 和 disabled 状态，无重叠、遮挡、溢出或布局抖动。",
+      "weight": 4,
+      "hard_gate": true,
+      "grader_spec": {
+        "type": "screenshot_review",
+        "procedure": [
+          "检查 assets 中的截图、设计稿或竞品参考及其用途说明。",
+          "在 1440x900 截取 Dashboard、Workflows、Editor、Preview、Monitor 详情和 Version History。",
+          "逐一触发八类关键状态并截图。",
+          "检查长名称、长说明、toast、抽屉和问题面板是否重叠或遮挡操作。"
+        ],
+        "pass_condition": "存在可执行的视觉参考；主要页面和八类状态清晰稳定；无明显重叠、溢出、遮挡或主题偏离。"
+      },
+      "evidence_required": [
+        "视觉参考资产及用途说明",
+        "六个主要视图的 1440px 截图",
+        "八类关键状态截图",
+        "长文本和浮层视觉检查记录"
+      ]
+    },
+    {
+      "id": "R14",
+      "category": "工程质量",
+      "criterion": "项目具备合理的 components、hooks、services、types 和 stores 边界，核心结构有 TypeScript 类型，业务数据不大量硬编码，代码格式统一且关键逻辑可单元测试；README 说明目录、启动、测试和已知限制。",
+      "weight": 3,
+      "hard_gate": false,
+      "grader_spec": {
+        "type": "manual_review",
+        "procedure": [
+          "审查目录职责、组件体积、状态边界和业务逻辑位置。",
+          "运行 TypeScript 构建、格式检查和已有单元测试。",
+          "搜索组件内硬编码业务数据和 any 使用。",
+          "核对 README 的启动、测试、目录和已知限制。"
+        ],
+        "pass_condition": "模块职责清晰、类型和格式检查通过、无大量业务硬编码，README 四类说明齐全。"
+      },
+      "evidence_required": [
+        "目录和代码审查记录",
+        "TypeScript 构建日志",
+        "格式与单元测试结果",
+        "README 内容核对"
+      ]
+    },
+    {
+      "id": "R15",
+      "category": "测试与证据",
+      "criterion": "提供 Playwright 配置与 tests 目录，使用单会话覆盖完整核心链路和关键边界，断言业务结果而非仅检查元素存在；实际运行测试、截图并检查 console 和 pageerror，证据输出到统一 artifacts 或 submission 目录。",
+      "weight": 2,
+      "hard_gate": true,
+      "grader_spec": {
+        "type": "playwright_assertion",
+        "procedure": [
+          "执行 README 声明的 Playwright 命令且不得复用错误项目服务。",
+          "审查测试是否覆盖需求列出的十项场景及一条连续完整链路。",
+          "确认关键断言包含值、状态、结构和数据联动。",
+          "检查 console error、pageerror、截图、trace 和测试日志输出。"
+        ],
+        "pass_condition": "全部测试在目标项目服务上通过，核心链路和边界有高价值断言，控制台无明显错误，证据目录完整可复核。"
+      },
+      "evidence_required": [
+        "Playwright 完整测试输出",
+        "目标服务 URL 与进程证据",
+        "console 和 pageerror 检查结果",
+        "artifacts 或 submission 中的截图与 trace"
+      ]
+    }
+  ]
+}
